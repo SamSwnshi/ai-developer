@@ -1,6 +1,7 @@
 import userModel from "../models/user.models.js";
 import * as userService from "../services/user.service.js";
 import { validationResult } from "express-validator";
+
 import redisClient from "../services/redis.service.js";
 
 export const createController = async (req, res) => {
@@ -29,14 +30,44 @@ export const loginController = async (req, res) => {
 
   try {
     const { email, password } = req.body;
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email }).select('+password');
 
     if (!user) {
       res.status(401).json({
         errors: "Invalid Credentials"
       })
     }
+
+    const isMatch = await user.isValidPassword(password);
+
+    if(!isMatch){
+      return res.status(401).json({
+        errors: "Invalid Credentials"
+      })
+    }
+
+    const token = await user.generateJWT();
+
+    res.status(200).json({user,token});
+
   } catch (err) {
     res.status(400).send(err.message);
   }
 };
+
+export const profileController = async(req,res)=>{
+  console.log(req.user);
+
+  res.status(200).json({
+    user: req.user
+  })
+}
+
+export const logoutController = async(req,res)=>{
+  try{
+
+  }catch(error){
+    console.log(error);
+    res.status(400).send(error.message)
+  }
+}
