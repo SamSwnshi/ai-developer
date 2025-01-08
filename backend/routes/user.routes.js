@@ -20,7 +20,9 @@ router.post('/login',
     .isLength({ min: 3 })
     .withMessage("Password must be at least 3 characters long"),
     userController.loginController
-); 
+);
+
+router.get("/logout",authMiddleware.authUser,userController.logoutController)
 
 router.get("/profile",authMiddleware.authUser ,userController.profileController)
 
