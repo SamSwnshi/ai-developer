@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-unused-vars
 import React from 'react'
-
+import AppRoutes from './routes/AppRoutes'
 const App = () => {
   return (
-    <div>
-      <h1 className='text-red-500 text-lg'>Welcome to ChatBot</h1>
+    <div className=''>
+      <AppRoutes/>
     </div>
   )
 }
