@@ -1,18 +1,35 @@
 /* eslint-disable no-unused-vars */
-import React from 'react';
-import { Link } from 'react-router-dom';
-
+import React, { useState } from 'react';
+import { Link,useNavigate } from 'react-router-dom';
+import axios from '../config/axios';
 const Register = () => {
+
+    const [email,setEmail] = useState("")
+    const [password,setPassword] = useState("")
+    const navigate = useNavigate();
+
+    const submitHandler = (e) =>{
+      e.preventDefault()
+      axios.post('/users/register',{
+        email,password
+      }).then((res)=>{
+        console.log(res.data)
+        navigate("/")
+      }).catch((error)=>{
+        console.log(error.response.data)
+      })
+    }
   return (
     <div className="flex items-center justify-center min-h-screen bg-black-900  text-white">
       <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-center">Register</h1>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={submitHandler}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
               Email
             </label>
             <input
+            onChange={(e)=> setEmail(e.target.value)}
               type="email"
               id="email"
               className="w-full px-4 py-2 mt-1 text-gray-900 bg-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -25,6 +42,7 @@ const Register = () => {
               Password
             </label>
             <input
+            onChange={(e)=> setPassword(e.target.value)}
               type="password"
               id="password"
               className="w-full px-4 py-2 mt-1 text-gray-900 bg-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"

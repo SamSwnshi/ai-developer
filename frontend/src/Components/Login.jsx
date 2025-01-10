@@ -12,7 +12,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const submitHandler = (e) =>{
-    axios.post('/login',{
+    e.preventDefault()
+    axios.post('/users/login',{
       email,password
     }).then((res)=>{
       console.log(res.data)
