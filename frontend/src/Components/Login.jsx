@@ -1,27 +1,34 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "../config/axios";
-
+import { UserContext } from "../context/user.context";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [email,setEmail] = useState("")
-  const [password,setPassword] = useState("")
+  const { setUser } = useContext(UserContext);
 
   const navigate = useNavigate();
 
-  const submitHandler = (e) =>{
-    e.preventDefault()
-    axios.post('/users/login',{
-      email,password
-    }).then((res)=>{
-      console.log(res.data)
-      navigate("/")
-    }).catch((error)=>{
-      console.log(error.response.data)
-    })
-  }
+  const submitHandler = (e) => {
+    e.preventDefault();
+    axios
+      .post("/users/login", {
+        email,
+        password,
+      })
+      .then((res) => {
+        console.log(res.data);
+        localStorage.setItem("token", res.data.token);
+        setUser(res.data.user);
+        navigate("/");
+      })
+      .catch((error) => {
+        console.log(error.response.data);
+      });
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black-900 text-white ">
@@ -33,7 +40,7 @@ const Login = () => {
               Email
             </label>
             <input
-              onChange={(e)=> setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               type="email"
               id="email"
               className="w-full px-4 py-2 mt-1 text-gray-900 bg-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -46,7 +53,7 @@ const Login = () => {
               Password
             </label>
             <input
-            onChange={(e)=> setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               type="password"
               id="password"
               className="w-full px-4 py-2 mt-1 text-gray-900 bg-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"

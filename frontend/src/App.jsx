@@ -1,12 +1,13 @@
 // eslint-disable-next-line no-unused-vars
-import React from 'react'
-import AppRoutes from './routes/AppRoutes'
+import React from "react";
+import AppRoutes from "./routes/AppRoutes";
+import { UserProvider } from "./context/user.context";
 const App = () => {
   return (
-    <div className=''>
-      <AppRoutes/>
-    </div>
-  )
-}
+    <UserProvider>
+      <AppRoutes />
+    </UserProvider>
+  );
+};
 
-export default App
+export default App;
