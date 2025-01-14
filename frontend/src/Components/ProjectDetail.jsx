@@ -1,45 +1,22 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import React, { useEffect, useState ,useContext } from 'react'
+import { data, useLocation } from 'react-router-dom'
 import axios from "../config/axios";
 import { initializeSocket,recieveMessage,sendMessage } from '../config/socket';
+import {UserContext} from "../context/user.context"
 
 const ProjectDetail = () => {
+
     const location = useLocation()
     const [isSide, setIsSide] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(new Set());
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
+    const [message,setMessage] = useState(null)
+    const {user} = useContext(UserContext);
 
-
-    useEffect(() => {
-
-        initializeSocket()
-
-        axios.get(`/projects/get-project/${location.state.project._id}`)
-            .then((res) => {
-                console.log({ resonse: res.data })
-
-
-                setProject(res.data.project)
-
-            })
-            .catch((error) => {
-                console.log({ error: error.message })
-            })
-
-               
-
-
-        axios.get('/users/all')
-            .then((res) => {
-                setUsers(res.data.users)
-            })
-            .catch((err) => {
-                console.log({ err: err.message })
-            })
-    }, [])
+    
 
     console.log(location.state)
 
@@ -70,6 +47,49 @@ const ProjectDetail = () => {
             })
     }
 
+    const sendMessageToProject = () =>{
+        sendMessage('project-message',{
+            message,
+            sender: user._id
+        })
+
+        setMessage('')
+    }
+
+    useEffect(() => {
+
+        initializeSocket(project._id)
+
+        recieveMessage("project-message",data =>{
+            console.log(data)
+        });
+
+
+
+        axios.get(`/projects/get-project/${location.state.project._id}`)
+            .then((res) => {
+                console.log({ resonse: res.data })
+
+
+                setProject(res.data.project)
+
+            })
+            .catch((error) => {
+                console.log({ error: error.message })
+            })
+
+               
+
+
+        axios.get('/users/all')
+            .then((res) => {
+                setUsers(res.data.users)
+            })
+            .catch((err) => {
+                console.log({ err: err.message })
+            })
+    }, [])
+
 
 
     return (
@@ -98,8 +118,9 @@ const ProjectDetail = () => {
                         </div>
                     </div>
                     <div className='w-full flex'>
-                        <input className="p-3 px-4 border-none outline-none flex-grow" type="text" placeholder='Enter text here' />
-                        <button className='flex-grow'>
+                        <input className="p-3 px-4 border-none outline-none flex-grow" type="text" placeholder='Enter text here' value={message}
+                        onChange={(e)=>setMessage(e.target.value)} />
+                        <button className='flex-grow' onClick={sendMessageToProject}>
                             <i className="ri-send-plane-line"></i>
                         </button>
                     </div>
