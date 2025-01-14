@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import axios from "../config/axios"
+import axios from "../config/axios";
+import { initializeSocket,recieveMessage,sendMessage } from '../config/socket';
 
 const ProjectDetail = () => {
     const location = useLocation()
@@ -13,6 +14,8 @@ const ProjectDetail = () => {
 
 
     useEffect(() => {
+
+        initializeSocket()
 
         axios.get(`/projects/get-project/${location.state.project._id}`)
             .then((res) => {
@@ -26,6 +29,7 @@ const ProjectDetail = () => {
                 console.log({ error: error.message })
             })
 
+               
 
 
         axios.get('/users/all')
