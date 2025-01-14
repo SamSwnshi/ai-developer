@@ -1,31 +1,79 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import axios from "../config/axios"
 
 const ProjectDetail = () => {
-    const [isSide, setIsSide] = useState(false);
-    const [isModalOpen,setIsModalOpen] = useState(false);
-    const [selectedUserId,setSelectedUserId] = useState(null);
-    const users = [
-        {id: 1,name: "User One"},
-        {id: 2,name: "User Two"},
-        {id: 3,name: "User Three"},
-        {id: 4,name: "User Four"},
-    ]
     const location = useLocation()
+    const [isSide, setIsSide] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState(new Set());
+    const [users, setUsers] = useState([])
+    const [project, setProject] = useState(location.state.project)
+
+
+    useEffect(() => {
+
+        axios.get(`/projects/get-project/${location.state.project._id}`)
+            .then((res) => {
+                console.log({ resonse: res.data })
+
+
+                setProject(res.data.project)
+
+            })
+            .catch((error) => {
+                console.log({ error: error.message })
+            })
+
+
+
+        axios.get('/users/all')
+            .then((res) => {
+                setUsers(res.data.users)
+            })
+            .catch((err) => {
+                console.log({ err: err.message })
+            })
+    }, [])
+
     console.log(location.state)
 
-    const handleUserClick = (id) =>{
-        setSelectedUserId([...selectedUserId,id])
+    const handleUserClick = (id) => {
+        setSelectedUserId(prevSelected => {
+            const newSelected = new Set(prevSelected);
+            if (newSelected.has(id)) {
+                newSelected.delete(id);
+            } else {
+                newSelected.add(id);
+            }
+            return newSelected;
+        })
         setIsModalOpen(false)
     }
+
+    const addCollaborators = () => {
+        axios.put("/projects/add-user", {
+            projectId: location.state.project._id,
+            users: Array.from(selectedUserId)
+        })
+            .then((res) => {
+                console.log(res.data)
+                setIsModalOpen(false)
+            })
+            .catch((err) => {
+                console.log({ err: err.message })
+            })
+    }
+
+
 
     return (
         <main className='h-screen w-screen flex'>
             <section className="left flex flex-col h-full min-w-96 bg-red-500 relative">
                 <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-400'>
 
-                    <button className='flex  gap-2'>
+                    <button className='flex  gap-2' onClick={() => setIsModalOpen(true)}>
                         <i className="ri-add-large-line mr-1"></i>
                         <p>Add Collaborator</p>
                     </button>
@@ -54,17 +102,22 @@ const ProjectDetail = () => {
                 </div>
 
                 <div className={`sidepanel w-full h-full flex flex-col gap-2  bg-blue-700  absolute  top-0 transition-all ${isSide ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <header className='flex justify-end p-3 px-4 bg-gray-600'>
+                    <header className='flex justify-between p-3 px-4 bg-gray-600'>
+                        <h1 className='text-white'>Collaborators</h1>
                         <button onClick={() => setIsSide(!isSide)}>
                             <i className="ri-xrp-line"></i>
                         </button>
                     </header>
 
                     <div className="users cursor-pointer flex flex-col gap-2">
-                        <div className="chat flex items-center gap-2">
-                            <img src="https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg" alt="" className='rounded-full w-14 h-14 p-2' />
-                            <h1 className='font-semibold'>User Name</h1>
-                        </div>
+                        {project.users && project.users.map(user => {
+                            return (
+                            <div key={user._id} className="chat flex items-center gap-2">
+                                <img src="https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg" alt="" className='rounded-full w-14 h-14 p-2' />
+                                <h1 className='font-semibold'>{user.email}</h1>
+                            </div>)
+
+                        })}
                     </div>
                 </div>
 
@@ -90,7 +143,7 @@ const ProjectDetail = () => {
                             ))}
                         </div>
                         <button
-                            // onClick={addCollaborators}
+                            onClick={addCollaborators}
                             className='absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md'>
                             Add Collaborators
                         </button>
