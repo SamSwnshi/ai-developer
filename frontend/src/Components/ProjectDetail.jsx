@@ -95,7 +95,7 @@ const ProjectDetail = () => {
         const message = document.createElement("div");
         message.classList.add("message", "max-w-56", "flex", "flex-center");
         message.innerHTML = `
-        <small class = 'opacity-65 text-xs'>${messageObject.email}</small>
+        <small class = 'opacity-65 text-xs'>${messageObject.sender.email}</small>
         <p class='text-xs'>${messageObject.message}</p>
         `
         messageBox.current.value.appendChild(message);
