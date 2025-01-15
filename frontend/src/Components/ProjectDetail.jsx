@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState ,useContext } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { data, useLocation } from 'react-router-dom'
 import axios from "../config/axios";
-import { initializeSocket,recieveMessage,sendMessage } from '../config/socket';
-import {UserContext} from "../context/user.context"
+import { initializeSocket, recieveMessage, sendMessage } from '../config/socket';
+import { UserContext } from "../context/user.context"
 
 const ProjectDetail = () => {
 
@@ -13,10 +13,12 @@ const ProjectDetail = () => {
     const [selectedUserId, setSelectedUserId] = useState(new Set());
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
-    const [message,setMessage] = useState(null)
-    const {user} = useContext(UserContext);
+    const [message, setMessage] = useState(null)
+    const { user } = useContext(UserContext);
 
-    
+    const messageBox = React.createRef()
+
+
 
     console.log(location.state)
 
@@ -47,11 +49,13 @@ const ProjectDetail = () => {
             })
     }
 
-    const sendMessageToProject = () =>{
-        sendMessage('project-message',{
+    const sendMessageToProject = () => {
+
+        sendMessage('project-message', {
             message,
-            sender: user._id
+            sender: user
         })
+        appendOutGoingMessage(message)
 
         setMessage('')
     }
@@ -60,8 +64,9 @@ const ProjectDetail = () => {
 
         initializeSocket(project._id)
 
-        recieveMessage("project-message",data =>{
+        recieveMessage("project-message", data => {
             console.log(data)
+            appendIncomingMessage(data)
         });
 
 
@@ -69,17 +74,12 @@ const ProjectDetail = () => {
         axios.get(`/projects/get-project/${location.state.project._id}`)
             .then((res) => {
                 console.log({ resonse: res.data })
-
-
                 setProject(res.data.project)
 
             })
             .catch((error) => {
                 console.log({ error: error.message })
             })
-
-               
-
 
         axios.get('/users/all')
             .then((res) => {
@@ -90,12 +90,40 @@ const ProjectDetail = () => {
             })
     }, [])
 
+    const appendIncomingMessage = (messageObject) => {
+        const messageBox = document.querySelector(".message-box")
+        const message = document.createElement("div");
+        message.classList.add("message", "max-w-56", "flex", "flex-center");
+        message.innerHTML = `
+        <small class = 'opacity-65 text-xs'>${messageObject.email}</small>
+        <p class='text-xs'>${messageObject.message}</p>
+        `
+        messageBox.current.value.appendChild(message);
+        scrollToBottom()
+    }
+
+    const appendOutGoingMessage = (messageObject) => {
+        const messageBox = document.querySelector(".message-box")
+        const message = document.createElement("div");
+        message.classList.add("message", "max-w-56", "flex", "ml-auto", "flex-center");
+        message.innerHTML = `
+        <small class = 'opacity-65 text-xs'>${user.email}</small>
+        <p class='text-xs'>${message}</p>
+        `
+        messageBox.current.value.appendChild(message)
+        scrollToBottom()
+    }
+
+    const scrollToBottom=()=> {
+        messageBox.current.scrollTop = messageBox.current.scrollHeight
+    }
+
 
 
     return (
         <main className='h-screen w-screen flex'>
-            <section className="left flex flex-col h-full min-w-96 bg-red-500 relative">
-                <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-400'>
+            <section className="left flex flex-col h-screen min-w-96 bg-red-500 relative">
+                <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-400 absolute top-0'>
 
                     <button className='flex  gap-2' onClick={() => setIsModalOpen(true)}>
                         <i className="ri-add-large-line mr-1"></i>
@@ -106,20 +134,16 @@ const ProjectDetail = () => {
                     </button>
                 </header>
 
-                <div className='conversation flex-grow flex flex-col p-1'>
-                    <div className="message  flex-grow flex flex-col gap-2">
-                        <div className="incoming max-w-60 flex flex-col gap-1 p-2 bg-red-800 w-fit rounded-md">
-                            <small className='opactiy-65 text-sm'>example@gmail.com</small>
-                            <p className='text-sm'> Lorem ipsum dolor sit amet.</p>
+                <div className='conversation flex-grow flex flex-col p-1 pt-14 pb-10 h-full relative'>
+                    
+                        <div ref={messageBox} 
+                         className="message-box  flex-grow flex flex-col gap-2 overflow-auto max-h-full">
+
                         </div>
-                        <div className="ml-auto max-w-60 incoming flex flex-col gap-1 p-2 bg-red-800 w-fit rounded-md">
-                            <small className='opactiy-65 text-sm'>example@gmail.com</small>
-                            <p className='text-sm'> Lorem ipsum dolor sit amet.</p>
-                        </div>
-                    </div>
-                    <div className='w-full flex'>
+                  
+                    <div className='w-full flex absolute bt-0'>
                         <input className="p-3 px-4 border-none outline-none flex-grow" type="text" placeholder='Enter text here' value={message}
-                        onChange={(e)=>setMessage(e.target.value)} />
+                            onChange={(e) => setMessage(e.target.value)} />
                         <button className='flex-grow' onClick={sendMessageToProject}>
                             <i className="ri-send-plane-line"></i>
                         </button>
@@ -137,10 +161,10 @@ const ProjectDetail = () => {
                     <div className="users cursor-pointer flex flex-col gap-2">
                         {project.users && project.users.map(user => {
                             return (
-                            <div key={user._id} className="chat flex items-center gap-2">
-                                <img src="https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg" alt="" className='rounded-full w-14 h-14 p-2' />
-                                <h1 className='font-semibold'>{user.email}</h1>
-                            </div>)
+                                <div key={user._id} className="chat flex items-center gap-2">
+                                    <img src="https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg" alt="" className='rounded-full w-14 h-14 p-2' />
+                                    <h1 className='font-semibold'>{user.email}</h1>
+                                </div>)
 
                         })}
                     </div>
