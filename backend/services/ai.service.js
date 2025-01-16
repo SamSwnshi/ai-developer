@@ -12,3 +12,4 @@ export const generateResult = async (prompt) => {
   const result = await model.generateContent(prompt);
   return result.response.text();
 };
+ 

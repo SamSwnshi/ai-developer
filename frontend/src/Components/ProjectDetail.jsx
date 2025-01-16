@@ -3,7 +3,8 @@ import React, { useEffect, useState, useContext } from 'react'
 import { data, useLocation } from 'react-router-dom'
 import axios from "../config/axios";
 import { initializeSocket, recieveMessage, sendMessage } from '../config/socket';
-import { UserContext } from "../context/user.context"
+import { UserContext } from "../context/user.context";
+import Markdown from 'markdown-to-jsx'
 
 const ProjectDetail = () => {
 
@@ -13,12 +14,11 @@ const ProjectDetail = () => {
     const [selectedUserId, setSelectedUserId] = useState(new Set());
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
-    const [message, setMessage] = useState(null)
+    const [message, setMessage] = useState('')
+    const [ messages, setMessages ] = useState([])
     const { user } = useContext(UserContext);
 
     const messageBox = React.createRef()
-
-
 
     console.log(location.state)
 
@@ -55,7 +55,7 @@ const ProjectDetail = () => {
             message,
             sender: user
         })
-        appendOutGoingMessage(message)
+        setMessages(prevMessages => [ ...prevMessages, { sender: user, message } ])
 
         setMessage('')
     }
@@ -91,13 +91,28 @@ const ProjectDetail = () => {
     }, [])
 
     const appendIncomingMessage = (messageObject) => {
+
         const messageBox = document.querySelector(".message-box")
         const message = document.createElement("div");
         message.classList.add("message", "max-w-56", "flex", "flex-center");
-        message.innerHTML = `
-        <small class = 'opacity-65 text-xs'>${messageObject.sender.email}</small>
-        <p class='text-xs'>${messageObject.message}</p>
-        `
+
+        if (messageObject.sender._id === "ai") {
+            const markDown = (
+                <Markdown>{messageObject.message}</Markdown>
+            )
+            message.innerHTML = `
+
+            <small class = 'opacity-65 text-xs'>${messageObject.sender.email}</small>
+            <p class='text-xs'>${markDown}</p>
+            `
+
+        } else {
+            message.innerHTML = `
+            <small class = 'opacity-65 text-xs'>${messageObject.sender.email}</small>
+            <p class='text-xs'>${messageObject.message}</p>
+            `
+        }
+
         messageBox.current.value.appendChild(message);
         scrollToBottom()
     }
@@ -114,7 +129,7 @@ const ProjectDetail = () => {
         scrollToBottom()
     }
 
-    const scrollToBottom=()=> {
+    const scrollToBottom = () => {
         messageBox.current.scrollTop = messageBox.current.scrollHeight
     }
 
@@ -135,12 +150,21 @@ const ProjectDetail = () => {
                 </header>
 
                 <div className='conversation flex-grow flex flex-col p-1 pt-14 pb-10 h-full relative'>
-                    
-                        <div ref={messageBox} 
-                         className="message-box  flex-grow flex flex-col gap-2 overflow-auto max-h-full">
 
-                        </div>
-                  
+                    <div ref={messageBox}
+                        className="message-box  flex-grow flex flex-col gap-2 overflow-auto max-h-full">
+                             {messages.map((msg, index) => (
+                            <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
+                                <small className='opacity-65 text-xs'>{msg.sender.email}</small>
+                                <div className='text-sm'>
+                                    {msg.sender._id === 'ai' ?
+                                        WriteAiMessage(msg.message)
+                                        : <p>{msg.message}</p>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
                     <div className='w-full flex absolute bt-0'>
                         <input className="p-3 px-4 border-none outline-none flex-grow" type="text" placeholder='Enter text here' value={message}
                             onChange={(e) => setMessage(e.target.value)} />
