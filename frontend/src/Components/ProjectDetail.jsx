@@ -115,6 +115,7 @@ const ProjectDetail = () => {
 
         messageBox.current.value.appendChild(message);
         scrollToBottom()
+        console.log()
     }
 
     const appendOutGoingMessage = (messageObject) => {
