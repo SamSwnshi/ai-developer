@@ -115,20 +115,20 @@ const ProjectDetail = () => {
 
         messageBox.current.value.appendChild(message);
         scrollToBottom()
-       console.log()
+       console.log( )
     }
 
-    const appendOutGoingMessage = (messageObject) => {
-        const messageBox = document.querySelector(".message-box")
-        const message = document.createElement("div");
-        message.classList.add("message", "max-w-56", "flex", "ml-auto", "flex-center");
-        message.innerHTML = `
-        <small class = 'opacity-65 text-xs'>${user.email}</small>
-        <p class='text-xs'>${message}</p>
-        `
-        messageBox.current.value.appendChild(message)
-        scrollToBottom()
-    }
+    // const appendOutGoingMessage = (messageObject) => {
+    //     const messageBox = document.querySelector(".message-box")
+    //     const message = document.createElement("div");
+    //     message.classList.add("message", "max-w-56", "flex", "ml-auto", "flex-center");
+    //     message.innerHTML = `
+    //     <small class = 'opacity-65 text-xs'>${user.email}</small>
+    //     <p class='text-xs'>${message}</p>
+    //     `
+    //     messageBox.current.value.appendChild(message)
+    //     scrollToBottom()
+    // }
 
     const scrollToBottom = () => {
         messageBox.current.scrollTop = messageBox.current.scrollHeight
