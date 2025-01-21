@@ -1,10 +1,27 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState, useContext, useRef } from 'react'
 import { data, useLocation } from 'react-router-dom'
 import axios from "../config/axios";
 import { initializeSocket, recieveMessage, sendMessage } from '../config/socket';
 import { UserContext } from "../context/user.context";
-import Markdown from 'markdown-to-jsx'
+import Markdown from 'markdown-to-jsx';
+
+
+function SyntaxHighlightedCode(props) {
+    const ref = useRef(null)
+
+    React.useEffect(() => {
+        if (ref.current && props.className?.includes('lang-') && window.hljs) {
+            window.hljs.highlightElement(ref.current)
+
+            // hljs won't reprocess the element unless this attribute is removed
+            ref.current.removeAttribute('data-highlighted')
+        }
+    }, [ props.className, props.children ])
+
+    return <code {...props} ref={ref} />
+}
+
 
 const ProjectDetail = () => {
 
@@ -15,7 +32,13 @@ const ProjectDetail = () => {
     const [users, setUsers] = useState([])
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
-    const [ messages, setMessages ] = useState([])
+    const [messages, setMessages] = useState([])
+    const [fileTree,setFileTree] = useState({
+        "app.js": {
+            content: ""
+        }
+
+    })
     const { user } = useContext(UserContext);
 
     const messageBox = React.createRef()
@@ -55,7 +78,7 @@ const ProjectDetail = () => {
             message,
             sender: user
         })
-        setMessages(prevMessages => [ ...prevMessages, { sender: user, message } ])
+        setMessages(prevMessages => [...prevMessages, { sender: user, message }])
 
         setMessage('')
     }
@@ -115,23 +138,30 @@ const ProjectDetail = () => {
 
         messageBox.current.value.appendChild(message);
         scrollToBottom()
-       console.log( )
+        console.log()
     }
-
-    // const appendOutGoingMessage = (messageObject) => {
-    //     const messageBox = document.querySelector(".message-box")
-    //     const message = document.createElement("div");
-    //     message.classList.add("message", "max-w-56", "flex", "ml-auto", "flex-center");
-    //     message.innerHTML = `
-    //     <small class = 'opacity-65 text-xs'>${user.email}</small>
-    //     <p class='text-xs'>${message}</p>
-    //     `
-    //     messageBox.current.value.appendChild(message)
-    //     scrollToBottom()
-    // }
 
     const scrollToBottom = () => {
         messageBox.current.scrollTop = messageBox.current.scrollHeight
+    }
+
+    const WriteAiMessage=() =>{
+        const messageObject = JSON.parse(message)
+
+        return (
+            <div
+                className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
+            >
+                <Markdown
+                    // eslint-disable-next-line react/no-children-prop
+                    children={messageObject.text}
+                    options={{
+                        overrides: {
+                            code: SyntaxHighlightedCode,
+                        },
+                    }}
+                />
+            </div>)
     }
 
 
@@ -154,7 +184,7 @@ const ProjectDetail = () => {
 
                     <div ref={messageBox}
                         className="message-box  flex-grow flex flex-col gap-2 overflow-auto max-h-full">
-                             {messages.map((msg, index) => (
+                        {messages.map((msg, index) => (
                             <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
                                 <small className='opacity-65 text-xs'>{msg.sender.email}</small>
                                 <div className='text-sm'>
