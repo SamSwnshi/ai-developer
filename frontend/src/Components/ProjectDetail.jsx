@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useContext, useRef } from 'react'
 import { data, useLocation } from 'react-router-dom'
@@ -39,6 +40,7 @@ const ProjectDetail = () => {
         }
 
     })
+    const [currentFile,setCurrentFile] = useState(null)
     const { user } = useContext(UserContext);
 
     const messageBox = React.createRef()
@@ -225,6 +227,65 @@ const ProjectDetail = () => {
                     </div>
                 </div>
 
+            </section>
+
+            <section className="right bg-red-50 flex-grow h-full flex ">
+                <div className="explore h-full flex max-w-64">
+                    <div className="file-tree">
+                        {
+                        Object.keys(fileTree).map((file, index) => (
+                            <button
+                                key={index}
+                                onClick={() => {
+                                    setCurrentFile(file)
+                                    setOpenFiles([ ...new Set([ ...openFiles, file ]) ])
+                                }}
+                                className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full">
+                                <p
+                                    className='font-semibold text-lg'
+                                >{file}</p>
+                            </button>))
+                        }
+                    </div>
+                </div>
+                <div className="code-editor">
+                        <div className="top"></div>
+                        <div className="bottom">
+                        {
+                            fileTree[ currentFile ] && (
+                                <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+                                    <pre
+                                        className="hljs h-full">
+                                        <code
+                                            className="hljs h-full outline-none"
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            onBlur={(e) => {
+                                                const updatedContent = e.target.innerText;
+                                                const ft = {
+                                                    ...fileTree,
+                                                    [ currentFile ]: {
+                                                        file: {
+                                                            contents: updatedContent
+                                                        }
+                                                    }
+                                                }
+                                                setFileTree(ft)
+                                                saveFileTree(ft)
+                                            }}
+                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
+                                            style={{
+                                                whiteSpace: 'pre-wrap',
+                                                paddingBottom: '25rem',
+                                                counterSet: 'line-numbering',
+                                            }}
+                                        />
+                                    </pre>
+                                </div>
+                            )
+                        }
+                        </div>
+                </div>
             </section>
 
             {isModalOpen && (
