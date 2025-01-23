@@ -40,8 +40,7 @@ const model = genAI.getGenerativeModel({
 
       "package.json": {
           file: {
-              contents: "
-
+              contents: "  
               {
                   "name": "temp-server",
                   "version": "1.0.0",
@@ -57,14 +56,8 @@ const model = genAI.getGenerativeModel({
                       "express": "^4.21.2"
                   }
 }
-
-              
               "
-              
-              
-
           },
-
       },
 
   },

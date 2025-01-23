@@ -6,6 +6,7 @@ import axios from "../config/axios";
 import { initializeSocket, recieveMessage, sendMessage } from '../config/socket';
 import { UserContext } from "../context/user.context";
 import Markdown from 'markdown-to-jsx';
+import hljs from 'highlight.js';
 
 
 function SyntaxHighlightedCode(props) {
@@ -34,12 +35,8 @@ const ProjectDetail = () => {
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
-    const [fileTree,setFileTree] = useState({
-        "app.js": {
-            content: ""
-        }
-
-    })
+    const [openFiles,setOpenFiles] = useState([])
+    const [fileTree,setFileTree] = useState({})
     const [currentFile,setCurrentFile] = useState(null)
     const { user } = useContext(UserContext);
 
@@ -91,7 +88,12 @@ const ProjectDetail = () => {
 
         recieveMessage("project-message", data => {
             console.log(data)
-            appendIncomingMessage(data)
+            const parse = JSON.parse(data.message);
+
+            if(message.fileTree){
+                setFileTree(message.fileTree)
+            }
+            setMessages(prevMessages => [ ...prevMessages, data ])
         });
 
 
@@ -114,34 +116,6 @@ const ProjectDetail = () => {
                 console.log({ err: err.message })
             })
     }, [])
-
-    const appendIncomingMessage = (messageObject) => {
-
-        const messageBox = document.querySelector(".message-box")
-        const message = document.createElement("div");
-        message.classList.add("message", "max-w-56", "flex", "flex-center");
-
-        if (messageObject.sender._id === "ai") {
-            const markDown = (
-                <Markdown>{messageObject.message}</Markdown>
-            )
-            message.innerHTML = `
-
-            <small class = 'opacity-65 text-xs'>${messageObject.sender.email}</small>
-            <p class='text-xs'>${markDown}</p>
-            `
-
-        } else {
-            message.innerHTML = `
-            <small class = 'opacity-65 text-xs'>${messageObject.sender.email}</small>
-            <p class='text-xs'>${messageObject.message}</p>
-            `
-        }
-
-        messageBox.current.value.appendChild(message);
-        scrollToBottom()
-        console.log()
-    }
 
     const scrollToBottom = () => {
         messageBox.current.scrollTop = messageBox.current.scrollHeight
@@ -249,7 +223,22 @@ const ProjectDetail = () => {
                     </div>
                 </div>
                 <div className="code-editor">
-                        <div className="top"></div>
+                        <div className="top flex justify-between w-full">
+                        <div className="files flex">
+                            {
+                                openFiles.map((file, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setCurrentFile(file)}
+                                        className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300 ${currentFile === file ? 'bg-slate-400' : ''}`}>
+                                        <p
+                                            className='font-semibold text-lg'
+                                        >{file}</p>
+                                    </button>
+                                ))
+                            }
+                        </div>
+                        </div>
                         <div className="bottom">
                         {
                             fileTree[ currentFile ] && (
