@@ -39,6 +39,7 @@ const ProjectDetail = () => {
     const [currentFile, setCurrentFile] = useState(null)
     const { user } = useContext(UserContext);
     const [webContainer, setWebContainer] = useState(null)
+    const [iframeUrl,setIframeUrl] = useState(null)
 
     const messageBox = React.createRef()
 
@@ -251,13 +252,31 @@ const ProjectDetail = () => {
                         <div className="actions flex gap-2">
                             <button onClick={async()=>{
                                 await webContainer.mount(fileTree);
-                                const installProcess= await webContainer?.spawn('ls')
+                                const installProcess= await webContainer?.spawn("npm", [ "install" ])
                                 installProcess.output.pipeTo(new WritableStream({
                                     write(chunk) {
                                         console.log(chunk)
                                     }
                                 }))
-                            }}>ls</button>
+                                if (runProcess) {
+                                    runProcess.kill()
+                                }
+                                let tempRunProcess = await webContainer.spawn("npm", [ "start" ]);
+
+                                tempRunProcess.output.pipeTo(new WritableStream({
+                                    write(chunk) {
+                                        console.log(chunk)
+                                    }
+                                }))
+                                setRunProcess(tempRunProcess)
+
+                                    webContainer.on('server-ready', (port, url) => {
+                                        console.log(port, url)
+                                        setIframeUrl(url)
+                                    })
+
+                                
+                            }}>Run</button>
                         </div>
                     </div>
                     <div className="bottom">
