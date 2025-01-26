@@ -39,7 +39,9 @@ const ProjectDetail = () => {
     const [currentFile, setCurrentFile] = useState(null)
     const { user } = useContext(UserContext);
     const [webContainer, setWebContainer] = useState(null)
-    const [iframeUrl,setIframeUrl] = useState(null)
+    const [iframeUrl, setIframeUrl] = useState(null)
+    const [ runProcess, setRunProcess ] = useState(null)
+
 
     const messageBox = React.createRef()
 
@@ -250,9 +252,9 @@ const ProjectDetail = () => {
                         </div>
 
                         <div className="actions flex gap-2">
-                            <button onClick={async()=>{
+                            <button onClick={async () => {
                                 await webContainer.mount(fileTree);
-                                const installProcess= await webContainer?.spawn("npm", [ "install" ])
+                                const installProcess = await webContainer?.spawn("npm", ["install"])
                                 installProcess.output.pipeTo(new WritableStream({
                                     write(chunk) {
                                         console.log(chunk)
@@ -261,7 +263,7 @@ const ProjectDetail = () => {
                                 if (runProcess) {
                                     runProcess.kill()
                                 }
-                                let tempRunProcess = await webContainer.spawn("npm", [ "start" ]);
+                                let tempRunProcess = await webContainer.spawn("npm", ["start"]);
 
                                 tempRunProcess.output.pipeTo(new WritableStream({
                                     write(chunk) {
@@ -270,12 +272,12 @@ const ProjectDetail = () => {
                                 }))
                                 setRunProcess(tempRunProcess)
 
-                                    webContainer.on('server-ready', (port, url) => {
-                                        console.log(port, url)
-                                        setIframeUrl(url)
-                                    })
+                                webContainer.on('server-ready', (port, url) => {
+                                    console.log(port, url)
+                                    setIframeUrl(url)
+                                })
 
-                                
+
                             }}>Run</button>
                         </div>
                     </div>
@@ -315,6 +317,15 @@ const ProjectDetail = () => {
                         }
                     </div>
                 </div>
+
+                {iframeUrl && webContainer &&
+                    (<div className="flex flex-col h-full min-w-96 ">
+                        <div className="address-bar">
+                            <input type="text" value={iframeUrl} className='w-full p-2 px-4' onChange={(e) => setIframeUrl(e.target.value)} />
+                        </div>
+                        <iframe src={iframeUrl} className='w-full  h-full'></iframe>
+                    </div>)
+                }
             </section>
 
             {isModalOpen && (
