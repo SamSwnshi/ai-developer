@@ -40,7 +40,7 @@ const ProjectDetail = () => {
     const { user } = useContext(UserContext);
     const [webContainer, setWebContainer] = useState(null)
     const [iframeUrl, setIframeUrl] = useState(null)
-    const [ runProcess, setRunProcess ] = useState(null)
+    const [runProcess, setRunProcess] = useState(null)
 
 
     const messageBox = React.createRef()
@@ -114,7 +114,7 @@ const ProjectDetail = () => {
             .then((res) => {
                 console.log({ resonse: res.data })
                 setProject(res.data.project)
-
+                setFileTree(res.data.project.fileTree)
             })
             .catch((error) => {
                 console.log({ error: error.message })
@@ -150,6 +150,17 @@ const ProjectDetail = () => {
                     }}
                 />
             </div>)
+    }
+
+    const saveFileTree = (ft) => {
+        axios.put('/projects/update-file-tree', {
+            projectId: project._id,
+            fileTree: ft
+        }).then(res => {
+            console.log(res.data)
+        }).catch(err => {
+            console.log(err)
+        })
     }
 
 

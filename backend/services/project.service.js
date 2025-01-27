@@ -34,7 +34,7 @@ export const getAllProjectByUserID = async ({ userId }) => {
 
   return allUserProject;
 };
-export const addUsersToProject = async ({ projectId, users ,userId}) => {
+export const addUsersToProject = async ({ projectId, users, userId }) => {
   if (!projectId) {
     throw new Error("ProjectID is Required!");
   }
@@ -63,39 +63,72 @@ export const addUsersToProject = async ({ projectId, users ,userId}) => {
 
   const project = await projectModel.findOne({
     _id: projectId,
-    users: userId
-  })
+    users: userId,
+  });
 
   console.log(project);
 
-  if(!project){
-    throw new Error("Users not belong to this Project!")
+  if (!project) {
+    throw new Error("Users not belong to this Project!");
   }
 
-  const updateProject = await projectModel.findOneAndUpdate({
-    _id: projectId,
-  },{
-    $addToSet: {
-      users: {
-        $each: users
-      }
+  const updateProject = await projectModel.findOneAndUpdate(
+    {
+      _id: projectId,
+    },
+    {
+      $addToSet: {
+        users: {
+          $each: users,
+        },
+      },
+    },
+    {
+      new: true,
     }
-  },{
-    new: true
-  })
+  );
 
   return updateProject;
-
 };
 
-export const getProjectById = async({projectId})=>{
+export const getProjectById = async ({ projectId }) => {
   if (!projectId) {
     throw new Error("ProjectId is Required!");
   }
   if (!mongoose.Types.ObjectId.isValid(projectId)) {
     throw new Error("Invalid projectId");
   }
-  const project = await projectModel.findOne({_id: projectId}).populate("users");
+  const project = await projectModel
+    .findOne({ _id: projectId })
+    .populate("users");
 
   return project;
-}
+};
+
+export const updateFileTree = async ({ projectId, fileTree }) => {
+  if (!projectId) {
+    throw new Error("projectId is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    throw new Error("Invalid projectId");
+  }
+
+  if (!fileTree) {
+    throw new Error("fileTree is required");
+  }
+
+  const project = await projectModel.findOneAndUpdate(
+    {
+      _id: projectId,
+    },
+    {
+      fileTree,
+    },
+    {
+      new: true,
+    }
+  );
+
+  return project;
+};
