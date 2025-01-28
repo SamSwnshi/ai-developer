@@ -108,8 +108,6 @@ const ProjectDetail = () => {
             setMessages(prevMessages => [...prevMessages, data])
         });
 
-
-
         axios.get(`/projects/get-project/${location.state.project._id}`)
             .then((res) => {
                 console.log({ resonse: res.data })
@@ -129,9 +127,6 @@ const ProjectDetail = () => {
             })
     }, [])
 
-    const scrollToBottom = () => {
-        messageBox.current.scrollTop = messageBox.current.scrollHeight
-    }
 
     const WriteAiMessage = () => {
         const messageObject = JSON.parse(message)
