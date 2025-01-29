@@ -12,10 +12,10 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={
-          // <UserAuth>
-          //   <Home />
-          // </UserAuth>
-          <Home/>
+          <UserAuth>
+            <Home />
+          </UserAuth>
+       
         } />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

@@ -31,9 +31,9 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black-900 text-white ">
-      <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-center">Login</h1>
+    <div className="flex items-center justify-center min-h-screen bg-black-900 text-white tracking-wide">
+      <div className="w-full max-w-md p-8 space-y-6 bg-lime-900 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold text-center">Login</h1>
         <form className="space-y-4" onSubmit={submitHandler}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
@@ -63,14 +63,14 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 text-white  bg-black rounded-lg hover:bg-white hover:text-black focus:ring-2 focus:ring-blue-500 transition duration-150"
           >
             Login
           </button>
         </form>
-        <p className="text-sm text-center">
+        <p className="text-sm text-center ">
           Don&apos;t have an account?{" "}
-          <Link to="/register" className="text-blue-400 hover:underline">
+          <Link to="/register" className="text-black hover:underline hover:text-white font-bold transition duration-150">
             Create one
           </Link>
         </p>
