@@ -1,3 +1,4 @@
+/* eslint-disable react/no-children-prop */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useContext, useRef } from 'react'
@@ -23,112 +24,76 @@ function SyntaxHighlightedCode(props) {
     return <code {...props} ref={ref} />
 }
 
-
 const ProjectDetail = () => {
 
     const location = useLocation()
-    const [isSide, setIsSide] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState(new Set());
-    const [users, setUsers] = useState([])
-    const [project, setProject] = useState(location.state.project)
-    const [message, setMessage] = useState('')
-    const [messages, setMessages] = useState([])
-    const [openFiles, setOpenFiles] = useState([])
-    const [fileTree, setFileTree] = useState({})
-    const [currentFile, setCurrentFile] = useState(null)
-    const { user } = useContext(UserContext);
-    const [webContainer, setWebContainer] = useState(null)
-    const [iframeUrl, setIframeUrl] = useState(null)
-    const [runProcess, setRunProcess] = useState(null)
 
-
+    const [ isSidePanelOpen, setIsSidePanelOpen ] = useState(false)
+    const [ isModalOpen, setIsModalOpen ] = useState(false)
+    const [ selectedUserId, setSelectedUserId ] = useState(new Set()) 
+    const [ project, setProject ] = useState(location.state.project)
+    const [ message, setMessage ] = useState('')
+    const { user } = useContext(UserContext)
     const messageBox = React.createRef()
 
-    console.log(location.state)
+    const [ users, setUsers ] = useState([])
+    const [ messages, setMessages ] = useState([]) 
+    const [ fileTree, setFileTree ] = useState({})
+
+    const [ currentFile, setCurrentFile ] = useState(null)
+    const [ openFiles, setOpenFiles ] = useState([])
+
+    const [ webContainer, setWebContainer ] = useState(null)
+    const [ iframeUrl, setIframeUrl ] = useState(null)
+
+    const [ runProcess, setRunProcess ] = useState(null)
+
+
 
     const handleUserClick = (id) => {
-        setSelectedUserId(prevSelected => {
-            const newSelected = new Set(prevSelected);
-            if (newSelected.has(id)) {
-                newSelected.delete(id);
+        setSelectedUserId(prevSelectedUserId => {
+            const newSelectedUserId = new Set(prevSelectedUserId);
+            if (newSelectedUserId.has(id)) {
+                newSelectedUserId.delete(id);
             } else {
-                newSelected.add(id);
+                newSelectedUserId.add(id);
             }
-            return newSelected;
-        })
-        setIsModalOpen(false)
+
+            return newSelectedUserId;
+        });
+
+
     }
 
-    const addCollaborators = () => {
+
+    function addCollaborators() {
+
         axios.put("/projects/add-user", {
             projectId: location.state.project._id,
             users: Array.from(selectedUserId)
+        }).then(res => {
+            console.log(res.data)
+            setIsModalOpen(false)
+
+        }).catch(err => {
+            console.log(err)
         })
-            .then((res) => {
-                console.log(res.data)
-                setIsModalOpen(false)
-            })
-            .catch((err) => {
-                console.log({ err: err.message })
-            })
+
     }
 
-    const sendMessageToProject = () => {
+    const send = () => {
 
         sendMessage('project-message', {
             message,
             sender: user
         })
-        setMessages(prevMessages => [...prevMessages, { sender: user, message }])
+        setMessages(prevMessages => [ ...prevMessages, { sender: user, message } ]) // Update messages state
+        setMessage("")
 
-        setMessage('')
     }
 
-    useEffect(() => {
+    function WriteAiMessage(message) {
 
-        initializeSocket(project._id)
-
-        if (!webContainer) {
-            getWebContainer().then(container => {
-                setWebContainer(container)
-                console.log("Container Started!")
-            })
-        }
-
-        recieveMessage("project-message", data => {
-            const message = JSON.parse(data.message);
-            console.log(message)
-
-            webContainer.mount(message.fileTree)
-
-            if (message.fileTree) {
-                setFileTree(message.fileTree)
-            }
-            setMessages(prevMessages => [...prevMessages, data])
-        });
-
-        axios.get(`/projects/get-project/${location.state.project._id}`)
-            .then((res) => {
-                console.log({ resonse: res.data })
-                setProject(res.data.project)
-                setFileTree(res.data.project.fileTree)
-            })
-            .catch((error) => {
-                console.log({ error: error.message })
-            })
-
-        axios.get('/users/all')
-            .then((res) => {
-                setUsers(res.data.users)
-            })
-            .catch((err) => {
-                console.log({ err: err.message })
-            })
-    }, [])
-
-
-    const WriteAiMessage = () => {
         const messageObject = JSON.parse(message)
 
         return (
@@ -136,7 +101,6 @@ const ProjectDetail = () => {
                 className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
             >
                 <Markdown
-                    // eslint-disable-next-line react/no-children-prop
                     children={messageObject.text}
                     options={{
                         overrides: {
@@ -147,7 +111,68 @@ const ProjectDetail = () => {
             </div>)
     }
 
-    const saveFileTree = (ft) => {
+    useEffect(() => {
+
+        initializeSocket(project._id)
+
+        if (!webContainer) {
+            getWebContainer().then(container => {
+                if (!webContainer) { // Check again before setting
+                    setWebContainer(container);
+                    console.log("container started");
+                }
+            }).catch(err => {
+                console.error("Error initializing WebContainer:", err);
+            });
+        }
+
+
+        recieveMessage('project-message', data => {
+            
+            console.log(data)
+            
+            if (data.sender._id == 'ai') {
+
+
+                const message = JSON.parse(data.message)
+
+                console.log(JSON.parse(message))
+
+                webContainer?.mount(message.fileTree)
+
+                if (message.fileTree) {
+                    setFileTree(message.fileTree || {})
+                }
+                setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+            } else {
+
+
+                setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+            }
+        })
+
+
+        axios.get(`/projects/get-project/${location.state.project._id}`).then(res => {
+
+            console.log(res.data.project)
+
+            setProject(res.data.project)
+            setFileTree(res.data.project.fileTree || {})
+        })
+
+        axios.get('/users/all').then(res => {
+
+            setUsers(res.data.users)
+
+        }).catch(err => {
+
+            console.log(err)
+
+        })
+
+    }, [])
+
+    function saveFileTree(ft) {
         axios.put('/projects/update-file-tree', {
             projectId: project._id,
             fileTree: ft
@@ -159,27 +184,31 @@ const ProjectDetail = () => {
     }
 
 
+    // Removed appendIncomingMessage and appendOutgoingMessage functions
+
+    function scrollToBottom() {
+        messageBox.current.scrollTop = messageBox.current.scrollHeight
+    }
 
     return (
         <main className='h-screen w-screen flex'>
-            <section className="left flex flex-col h-screen min-w-96 bg-red-500 relative">
-                <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-400 absolute top-0'>
-
-                    <button className='flex  gap-2' onClick={() => setIsModalOpen(true)}>
-                        <i className="ri-add-large-line mr-1"></i>
-                        <p>Add Collaborator</p>
+            <section className="left relative flex flex-col h-screen min-w-96 bg-slate-300">
+                <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute z-10 top-0'>
+                    <button className='flex gap-2' onClick={() => setIsModalOpen(true)}>
+                        <i className="ri-add-fill mr-1"></i>
+                        <p>Add collaborator</p>
                     </button>
-                    <button className='p-2' onClick={() => setIsSide(!isSide)}>
-                        <i className="ri-group-line"></i>
+                    <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className='p-2'>
+                        <i className="ri-group-fill"></i>
                     </button>
                 </header>
+                <div className="conversation-area pt-14 pb-10 flex-grow flex flex-col h-full relative">
 
-                <div className='conversation flex-grow flex flex-col p-1 pt-14 pb-10 h-full relative'>
-
-                    <div ref={messageBox}
-                        className="message-box  flex-grow flex flex-col gap-2 overflow-auto max-h-full">
-                        {messages.map((msg, index) => (
-                            <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
+                    <div
+                        ref={messageBox}
+                        className="message-box p-1 flex-grow flex flex-col gap-1 overflow-auto max-h-full scrollbar-hide">
+                        {messages.map((msg) => (
+                            <div key={msg._id} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id.toString() && 'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
                                 <small className='opacity-65 text-xs'>{msg.sender.email}</small>
                                 <div className='text-sm'>
                                     {msg.sender._id === 'ai' ?
@@ -190,47 +219,53 @@ const ProjectDetail = () => {
                         ))}
                     </div>
 
-                    <div className='w-full flex absolute bt-0'>
-                        <input className="p-3 px-4 border-none outline-none flex-grow" type="text" placeholder='Enter text here' value={message}
-                            onChange={(e) => setMessage(e.target.value)} />
-                        <button className='flex-grow' onClick={sendMessageToProject}>
-                            <i className="ri-send-plane-line"></i>
-                        </button>
+                    <div className="inputField w-full flex absolute bottom-0">
+                        <input
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            className='p-2 px-4 border-none outline-none flex-grow' type="text" placeholder='Enter message' />
+                        <button
+                            onClick={send}
+                            className='px-5 bg-slate-950 text-white'><i className="ri-send-plane-fill"></i></button>
                     </div>
                 </div>
+                <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${isSidePanelOpen ? 'translate-x-0' : '-translate-x-full'} top-0`}>
+                    <header className='flex justify-between items-center px-4 p-2 bg-slate-200'>
 
-                <div className={`sidepanel w-full h-full flex flex-col gap-2  bg-blue-700  absolute  top-0 transition-all ${isSide ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <header className='flex justify-between p-3 px-4 bg-gray-600'>
-                        <h1 className='text-white'>Collaborators</h1>
-                        <button onClick={() => setIsSide(!isSide)}>
-                            <i className="ri-xrp-line"></i>
+                        <h1
+                            className='font-semibold text-lg'
+                        >Collaborators</h1>
+
+                        <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className='p-2'>
+                            <i className="ri-close-fill"></i>
                         </button>
                     </header>
-
-                    <div className="users cursor-pointer flex flex-col gap-2">
+                    <div className="users flex flex-col gap-2">
                         {project.users && project.users.map(user => {
                             return (
-                                <div key={user._id} className="chat flex items-center gap-2">
-                                    <img src="https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg" alt="" className='rounded-full w-14 h-14 p-2' />
-                                    <h1 className='font-semibold'>{user.email}</h1>
-                                </div>)
-
+                                <div key={user.email} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
+                                    <div className='aspect-square rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
+                                        <i className="ri-user-fill absolute"></i>
+                                    </div>
+                                    <h1 className='font-semibold text-lg'>{user.email}</h1>
+                                </div>
+                            )
                         })}
                     </div>
                 </div>
-
             </section>
 
-            <section className="right bg-red-50 flex-grow h-full flex ">
-                <div className="explore h-full flex max-w-64">
-                    <div className="file-tree">
+            <section className="right  bg-red-50 flex-grow h-full flex">
+
+                <div className="explorer h-full max-w-64 min-w-52 bg-slate-200">
+                    <div className="file-tree w-full">
                         {
                             Object.keys(fileTree).map((file, index) => (
                                 <button
                                     key={index}
                                     onClick={() => {
                                         setCurrentFile(file)
-                                        setOpenFiles([...new Set([...openFiles, file])])
+                                        setOpenFiles([ ...new Set([ ...openFiles, file ]) ])
                                     }}
                                     className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full">
                                     <p
@@ -240,7 +275,7 @@ const ProjectDetail = () => {
                         }
                     </div>
                 </div>
-                <div className="code-editor">
+                <div className="code-editor flex flex-col flex-grow h-full shrink">
                     <div className="top flex justify-between w-full">
                         <div className="files flex">
                             {
@@ -258,38 +293,45 @@ const ProjectDetail = () => {
                         </div>
 
                         <div className="actions flex gap-2">
-                            <button onClick={async () => {
-                                await webContainer.mount(fileTree);
-                                const installProcess = await webContainer?.spawn("npm", ["install"])
-                                installProcess.output.pipeTo(new WritableStream({
-                                    write(chunk) {
-                                        console.log(chunk)
+                            <button
+                                onClick={async () => {
+                                    if (fileTree) {  // Check if fileTree is defined
+                                        await webContainer.mount(fileTree)
+                                        const installProcess = await webContainer.spawn("npm", [ "install" ])
+                                        installProcess.output.pipeTo(new WritableStream({
+                                            write(chunk) {
+                                                console.log(chunk)
+                                            }
+                                        }))
+                                        if (runProcess) {
+                                            runProcess.kill()
+                                        }
+                                        let tempRunProcess = await webContainer.spawn("npm", [ "start" ]);
+                                        tempRunProcess.output.pipeTo(new WritableStream({
+                                            write(chunk) {
+                                                console.log(chunk)
+                                            }
+                                        }))
+                                        setRunProcess(tempRunProcess)
+                                        webContainer.on('server-ready', (port, url) => {
+                                            console.log(port, url)
+                                            setIframeUrl(url)
+                                        })
+                                    } else {
+                                        console.error("fileTree is undefined or null");
                                     }
-                                }))
-                                if (runProcess) {
-                                    runProcess.kill()
-                                }
-                                let tempRunProcess = await webContainer.spawn("npm", ["start"]);
-
-                                tempRunProcess.output.pipeTo(new WritableStream({
-                                    write(chunk) {
-                                        console.log(chunk)
-                                    }
-                                }))
-                                setRunProcess(tempRunProcess)
-
-                                webContainer.on('server-ready', (port, url) => {
-                                    console.log(port, url)
-                                    setIframeUrl(url)
-                                })
+                                }}
+                                className='p-2 px-4 bg-slate-300 text-white'
+                            >
+                                run
+                            </button>
 
 
-                            }}>Run</button>
                         </div>
                     </div>
-                    <div className="bottom">
+                    <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
                         {
-                            fileTree[currentFile] && (
+                            fileTree[ currentFile ] && (
                                 <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
                                     <pre
                                         className="hljs h-full">
@@ -301,7 +343,7 @@ const ProjectDetail = () => {
                                                 const updatedContent = e.target.innerText;
                                                 const ft = {
                                                     ...fileTree,
-                                                    [currentFile]: {
+                                                    [ currentFile ]: {
                                                         file: {
                                                             contents: updatedContent
                                                         }
@@ -310,7 +352,7 @@ const ProjectDetail = () => {
                                                 setFileTree(ft)
                                                 saveFileTree(ft)
                                             }}
-                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[currentFile].file.contents).value }}
+                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
                                             style={{
                                                 whiteSpace: 'pre-wrap',
                                                 paddingBottom: '25rem',
@@ -322,16 +364,21 @@ const ProjectDetail = () => {
                             )
                         }
                     </div>
+
                 </div>
 
                 {iframeUrl && webContainer &&
-                    (<div className="flex flex-col h-full min-w-96 ">
+                    (<div className="flex min-w-96 flex-col h-full">
                         <div className="address-bar">
-                            <input type="text" value={iframeUrl} className='w-full p-2 px-4' onChange={(e) => setIframeUrl(e.target.value)} />
+                            <input type="text"
+                                onChange={(e) => setIframeUrl(e.target.value)}
+                                value={iframeUrl} className="w-full p-2 px-4 bg-slate-200" />
                         </div>
-                        <iframe src={iframeUrl} className='w-full  h-full'></iframe>
+                        <iframe src={iframeUrl} className="w-full h-full"></iframe>
                     </div>)
                 }
+
+
             </section>
 
             {isModalOpen && (
@@ -364,5 +411,7 @@ const ProjectDetail = () => {
         </main>
     )
 }
+
+
 
 export default ProjectDetail

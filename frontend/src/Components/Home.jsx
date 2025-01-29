@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useContext } from "react";
 import { UserContext } from "../context/user.context";
 import axios from "../config/axios";
-import {useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 const Home = () => {
   const { user } = useContext(UserContext);
@@ -36,25 +36,31 @@ const Home = () => {
       })
   }, [])
   return (
-    <main className="p-4 text-white ">
+    <main className="p-6 flex flex-col items-center text-white ">
       <div className="projects flex flex-wrap gap-4">
+
         <button
-          className="project p-4 rounded-md border border-red-600"
+          className="project py-4 px-4 rounded-lg border border-red-600 hover:bg-gray-600"
           onClick={() => setIsModal(true)}
-        >New Project
-          <i className="ml-2 ri-links-line "></i>
+        >Create New Project
+          <i className="ml-3 ri-links-line "></i>
         </button>
         {project?.map((project) => (
-          <div key={project._id} onClick={()=>{navigate(`/project`,{
-            state: {project}
-          })}} className="flex flex-col gap-2 project p-4 cursor-pointer min-w-52 border border-red-600 rounded-lg hover:bg-gray-600">
-            <h2 className="font-semibold">{project.name}</h2>
+          <div key={project._id} onClick={() => {
+            navigate(`/project`, {
+              state: { project }
+            })
+          }} className="flex flex-col items-center gap-2 project p-2 cursor-pointer min-w-52 border border-red-600 rounded-lg hover:bg-gray-600">
+            <h2 className="font-semibold uppercase tracking-wider">{project.name}</h2>
             <div className="flex gap-2">
-              <p><i className="ri-user-5-line"></i>Collaboraters :</p>
+              <p><i className="ri-user-5-line mr-2"></i>Collaboraters :</p>
               {project.users.length}
             </div>
           </div>
         ))}
+      </div>
+      <div className="flex items-center text-center mt-48">
+        <h1 className="text-8xl font-semibold tracking-wide text-white]">Welcome to BotConnect</h1>
       </div>
       {isModal && (
         <div className="fixed inset-0 flex items-center justify-center">
