@@ -73,8 +73,8 @@ const Home = () => {
         ))}
       </div>
 
-      <div className="flex items-center justify-center text-center mt-18 sm:mt-32">
-        <h1 className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-wide">
+      <div className="flex items-center justify-center text-center mt-28 sm:mt-32">
+        <h1 className="text-6xl sm:text-6xl md:text-8xl font-semibold tracking-wide">
           Welcome to BotConnect
         </h1>
       </div>
