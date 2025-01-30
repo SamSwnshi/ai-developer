@@ -84,7 +84,7 @@ const ProjectDetail = () => {
     const send = () => {
 
         sendMessage('project-message', {
-            message,
+            message: JSON.stringify({ text: message }),
             sender: user
         })
         setMessages(prevMessages => [ ...prevMessages, { sender: user, message } ]) // Update messages state
@@ -136,7 +136,7 @@ const ProjectDetail = () => {
 
                 const message = JSON.parse(data.message)
 
-                console.log(JSON.parse(message))
+                console.log(data.message)
 
                 webContainer?.mount(message.fileTree)
 
@@ -330,39 +330,36 @@ const ProjectDetail = () => {
                         </div>
                     </div>
                     <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
-                        {
-                            fileTree[ currentFile ] && (
-                                <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
-                                    <pre
-                                        className="hljs h-full">
-                                        <code
-                                            className="hljs h-full outline-none"
-                                            contentEditable
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const updatedContent = e.target.innerText;
-                                                const ft = {
-                                                    ...fileTree,
-                                                    [ currentFile ]: {
-                                                        file: {
-                                                            contents: updatedContent
-                                                        }
-                                                    }
-                                                }
-                                                setFileTree(ft)
-                                                saveFileTree(ft)
-                                            }}
-                                            dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
-                                            style={{
-                                                whiteSpace: 'pre-wrap',
-                                                paddingBottom: '25rem',
-                                                counterSet: 'line-numbering',
-                                            }}
-                                        />
-                                    </pre>
-                                </div>
-                            )
-                        }
+                       {
+  fileTree[currentFile] && (
+    <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+      <pre className="hljs h-full">
+        <code
+          className="hljs h-full outline-none"
+          contentEditable
+          suppressContentEditableWarning
+          onBlur={(e) => {
+            const updatedContent = e.target.innerText;
+            const ft = {
+              ...fileTree,
+              [currentFile]: {
+                file: {
+                  contents: updatedContent,
+                },
+              },
+            };
+            setFileTree(ft);
+            saveFileTree(ft);
+          }}
+          dangerouslySetInnerHTML={{
+            __html: hljs.highlight('javascript', fileTree[currentFile].file.contents).value,
+          }}
+        />
+      </pre>
+    </div>
+  )
+}
+
                     </div>
 
                 </div>

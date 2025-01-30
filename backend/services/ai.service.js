@@ -1,5 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+console.log("Google AI Key:", process.env.GOOGLE_AI_KEY);
+
+
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_KEY);
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
@@ -73,6 +76,11 @@ IMPORTANT : don't use file name like routes/index.js
 });
 
 export const generateResult = async (prompt) => {
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+    try {
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+      } catch (error) {
+        console.error("Google Generative AI Error:", error.message);
+        return "AI service is currently unavailable. Please try again later.";
+      }
 };
