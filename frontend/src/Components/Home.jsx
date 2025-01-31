@@ -65,7 +65,7 @@ const Home = () => {
             </h2>
             <div className="flex flex-wrap gap-2 justify-center text-xs sm:text-sm">
               <p>
-                <i className="ri-user-5-line mr-2"></i>Collaborators :
+                <i className="ri-user-5-line mr-2"></i>Collaborator&apos;s :
               </p>
               {project.users.length}
             </div>
